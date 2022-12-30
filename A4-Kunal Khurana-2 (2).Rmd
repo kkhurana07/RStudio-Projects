@@ -1,0 +1,200 @@
+---
+title: "A4-*Kunal Khurana*"
+author: "by *Kunal Khurana* (*301355396*)"
+date: '*October 18, 2020*'
+output:
+  html_document: default
+
+---
+
+### Assignment 4 Instructions
+
+1. Read [Chapter 4](https://socviz.co/groupfacettx.html#groupfacettx) and [Chapter 5](https://socviz.co/workgeoms.html#workgeoms) of [**Data Visualization (SOCVIZ)**](https://socviz.co).
+
+2. Read [CH 5](https://r4ds.had.co.nz/transform.html), [CH 7](https://r4ds.had.co.nz/exploratory-data-analysis.html), [CH 16](https://r4ds.had.co.nz/dates-and-times.html), and [CH 18](https://r4ds.had.co.nz/pipes.html) of [**R for Data Science (R4DS)**](https://r4ds.had.co.nz). 
+
+3. Download the markdown file "A4-Your Name.Rmd" from Canvas. Change the name of the file so that your full name appears in the name of the file instead of the words "Your Name". Change the title and author information at the top to reflect your information.  **Independently** complete the steps in each section below, then *knit* your R Markdown Notebook into a ``.html`` file. Submit the completed ``.Rmd`` and ``.html`` file on Canvas. Submit the same ``.html`` file to the course Turnitin link. **Assignment 4 is due by 11:59PM on Sunday October 18. Assignments submitted late will lose one point per 10 minutes late. So 1 point will be deducted if submitted between 12:00-12:09 AM; -2 points 12:10-12:19 AM; ...; -9 points 1:20-1:29 (since assignments are out of 10, no credit for anything after 1:30)** 
+
+### Part 1: Integrity Statement and Assignment References
+
+In submitting this assignment to Canvas, I, **Kunal Khurana**, confirm that this work was independently completed and that I have appropriately listed all of my sources below. I understand that if any part of my answers (inlcluding the code I use) are similar enough to indicate non-independent work when compared to the answers from any other student in this course or from prior course materials, then I will receive zero points on this assignment. I also affirm that any answers or code copied or used from other resources online is appropriately referenced and if it is not appropriately referenced than I will receive zero points on this assignment. 
+
+I have used the following materials to complete this assignment: 
+1. [R4DS](https://r4ds.had.co.nz). 
+2. [SOCVIZ](https://socviz.co)
+3. Course lecture videos on Canvas
+
+4. For Q7- http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization
+
+5. For Q8-  https://mgimond.github.io/ES218/Week03ab_groupby.html
+
+ http://www.sthda.com/english/wiki/ggplot2-axis-ticks-a-guide-to-customize-tick-marks-and-labels
+
+6. For Q9- https://felixfan.github.io/ggplot2-remove-grid-background-margin/
+
+http://www.sthda.com/english/wiki/ggplot2-density-plot-quick-start-guide-r-software-and-data-visualization
+
+https://stackoverflow.com/questions/32378081/geom-density-by-day-of-the-week-in-r
+
+https://rstudio-pubs-static.s3.amazonaws.com/280487_1ee1651f7cae4c8fa9f71f631bf38c11.html
+
+https://ggplot2.tidyverse.org/reference/geom_density.html
+
+https://stackoverflow.com/questions/48407745/density-plot-based-on-time-of-the-day
+
+NEW: I have used the following R packages to complete this assignment. To replicate, install these packages first.
+1.`tidyverse`
+2. `lubridate`
+
+### Part 2 - Data import, manipulation and visualization
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+```
+
+1. (1pt) Download the file "crimedata_csv_all_years.csv" to the same folder you have your .Rmd file saved. This is incident-level crime data for the city of Vancouver. Use the appropriate function from [CH 11 in R4DS](https://r4ds.had.co.nz/data-import.html) for reading in comma delimmited files and give your tibble a name that makes sense to you. Use the `str()` function and note how many observations and how many variables there are in your data.
+
+```{r}
+crime007_kk <- read.csv("C:/Users/kunal/OneDrive/Desktop/334/crimedata_csv_all_years.csv")
+str(crime007_kk)
+
+```
+**Answer** There are 654521 observations and 10 variables in the dataset.
+
+2. (1pt) Create a character vector that contains with the unique values of the variable `TYPE`, show the contents of the vector, and write a sentence describing what this variable captures. 
+```{r}
+chr007_kk <- unique(crime007_kk$TYPE)
+chr007_kk
+
+```
+
+**Answer:** The variable "TYPE" contains the incidents that happened in Vancouver. Basically it indicates what type of incident took place. 
+
+3. (1pt) Create a tibble the captures the number of crimes by TYPE by MONTH and by YEAR. Use the pipe function discussed in this week's lecture videos to simplify your code into one step. Your goal is to have a dataset so that each observation is the number of incidents of a certain type in a paritcular month and year. For example, one row in your data might look like 
+
+TYPE  | YEAR | MONTH | count
+------------- | ------------- | ------------- |------------- 
+Theft from Vehicle  | 2019 | 3 | 34
+
+```{r}
+
+data007_kk <- crime007_kk %>%  group_by(TYPE, YEAR, MONTH) %>% summarize(crimes= n())
+head(data007_kk)
+
+
+```
+
+
+4. (1pt) Install the `lubridate` package in your R console (do not have to put this in your .Rmd file). Load the library for the package in your R code chunk below. Create a new variable that is a date-formatted variable out of the YEAR and MONTH column using the `make_date()` function. Use the `summary()` function to describe this column and note the minimum and maximum values. 
+```{r}
+library(lubridate)
+cr007_kk <- data007_kk %>% mutate(date = make_date(YEAR, MONTH))
+summary(cr007_kk$date)
+
+```
+**Answer**      The minimum vale is "2003-01-01" and the maximum value is "2020-10-01". 
+
+
+
+5. (1pt) Clean your data to only include the crime types "Break and Enter Commercial" and "Break and Enter Residential/Other" and to stop at September 2020 (delete October 2020 observations since we do not have a full month). 
+
+
+
+```{r}
+cl007_kk <- cr007_kk %>% group_by(TYPE, YEAR, MONTH) %>% filter(TYPE %in% c("Break and Enter Commercial","Break and Enter Residential/Other")) 
+cl007_kk %>% filter(date!="2020-10-01")
+
+  
+
+```
+
+
+6. (1pt) Create a line plot using ``ggplot()` and `geom_line()` that connects the incidents for each of the two types of crime in different colors for each month. In other words, you should have a  line connecting the number of incidents month-to-month from January 2003 through October 2020 for each of the two types of crime in your data. Your year-month time variable should be on the horizontal axis and the number of incidents on the vertical axis. Include a descriptive title for your plot and for the y-axis and have the legend below the plot (see [here](http://www.sthda.com/english/wiki/ggplot2-legend-easy-steps-to-change-the-position-and-the-appearance-of-a-graph-legend-in-r-software) for use of the `legend.position` option.) Write a few sentences about how the overall trends between commercial vs. residential break ins differ over the period and comment on any  interesting differences during the recent 6 months. 
+
+
+
+
+```{r example, fig.width=15, fig.height=8} 
+cl007_kk %>% ggplot(mapping = aes(y=crimes, x=date)) + geom_line(aes(colour=TYPE)) + theme(legend.position = "bottom") + scale_x_date(date_breaks = "1 year", date_labels = "%Y") + labs(title= "Commercial and Resedential crimes over 17 years",x="", y="Number of crimes") + facet_wrap(~ TYPE, ncol=1, scales = "free_y")
+```
+
+
+
+**Answer**     The overall trend between the commercial and resedential breaks ins till mid 2011 is pretty same, they both are overall decreasing but wihtin the months both of the numbers were changing frequently sometimes they were up, and sometimes low. After 2011 the Break and Enter Commercial had a increasing trend whereas Break and Enter Residential was overall stable for these years, rather showed a decreasing trend a little-bit.    
+Both of these types were definitely at a higher rate in 2003 whereas in 2020 the numbers are quite low overall which is a good sign in the society.    
+
+Break and Enter commercial in **January 2003**- 303 crimes and in **December 2020**- 173 crimes.   
+Break and Enter Residential/other in **January 2003**- 644 crimes and in **December 2020**- 190 crimes.   
+
+
+For recent 6 months, what interseting thing I noticed is that both the numbers decreased to the range of 250 and started rising at the same time and fell at the same time. It kind of shows the same pattern for both the types for the recent 6 months. 
+
+
+
+
+7. (1pt) Starting with your original tibble, do all the steps below in one step using the pipe function. 
+  + keep only criminal incidents (filter out the vehicle collision types)
+  + count the number of incidents for each type
+  + create a `geom_bar()` plot dispilaying the total number of incidents by type in the data and rotate the graph horizontally to make it easier to read using the `coord_flip()` option. 
+  
+What is the most common type of crime in this data? 
+
+
+
+
+
+
+```{r}
+new007_kk <- crime007_kk %>% filter(TYPE!= "Vehicle Collision or Pedestrian Struck (with Fatality)" & TYPE!= "Vehicle Collision or Pedestrian Struck (with Injury)") %>% group_by(TYPE) %>% summarize(Incidents=n()) %>% ggplot(mapping =  aes(y=Incidents, x=TYPE)) + geom_bar(stat = "identity") + coord_flip() 
+
+new007_kk
+```
+
+
+**Answer**    The most common type of crime according to this data is **Theft from Vehicle**.   
+  
+
+8. (1.5pts) To visualize how crime patterns compare this year to other years, choose one of the nine types of crime and create a plot that has months January through September (not months-by-year, just months) on the horizontal axis and incidents on the vertical axis with different lines for each of the past five years. You should have a line depicting criminal incidents per month from January through September in 2016, a line for 2017, 2018, 2019 and 2020. Change the color scheme from the default to rainbow colors using the option `scale_color_gradientn(colours = rainbow(5))`. *Note that you might have to specify both the `color=` and `group=` to get this to look right (see discussion around [Figure 4.1 and 4.2 in SOCVIZ](https://socviz.co/groupfacettx.html#groupfacettx))*.  Do this all in one step using the pipe functions from the original data object from question 1 if you can. Write a brief paragraph describing how the pattern of crime (for the type that you chose) during the first 9 months of 2020 compares to the pattern from other years. 
+
+```{r }
+crp_kk <- crime007_kk %>% filter(TYPE=="Theft of Vehicle") %>% group_by( TYPE,YEAR, MONTH) %>% summarise(incidents=n()) %>% filter(MONTH!="10", MONTH!="11", MONTH!="12") %>% filter(YEAR >= 2016 & YEAR <=2020) %>%  mutate(date = make_date(YEAR, MONTH))%>% ggplot(mapping= aes(y=incidents, x=MONTH)) + geom_line(aes(group=YEAR, colour=YEAR)) +  scale_color_gradientn(colours = rainbow(5)) + labs(y="Number of thefts", x="", title = "Theft of Vehicle over past 5 years") +scale_x_continuous(breaks=c(1:9)) 
+crp_kk
+```
+
+
+**Answer**     The purple line in the graph is depicting the year 2020 and in the initial months it shows an increasing pattern for number of thefts for all the 5 years but after the 3rd month there was a sudden decrease in numbers for 2020 and it kept on decreasing for 2 months wehreas the other years had increasing and decreasing within those 2 months.  
+
+After the 5th month in 2020, the number suddenly hiked up and it has shown an increasing pattern till the last month whereas if we consider the past 4 years it don't show any sudden rise, there has always been ups and downs in the numbers. This may conclude that, the number of thefts of vehicles are increasing in the year 2020. 
+
+
+
+
+
+
+9. (1.5pts) **Difficult, so don't stress if you cant accomplish this one.** Going back to the original data from question 1, try to create a plot that helps visualize the distribution of specific type of crime (of your choice, but do not choose Homicide since it is too infrequent) over the hours of the day for each day of the week. Your goal is a plot similar to [4.18 in SOCVIZ](https://socviz.co/groupfacettx.html#groupfacettx) where each color will represent a day of the week (Monday through Sunday) and the density plots will show when crime is typically occuring during the 24 hour long day. If you are able to create this graph, write a paragraph describing how crime patterns for your crime type vary by day of the week. Are there different patterns on weekdays compared to weekends? During what hours are the crimes most common? We will select the three best answers to this question for an extra bonus assignemnt point. 
+
+
+
+
+```{r}
+
+sp007_kk <- crime007_kk %>% filter(TYPE=="Theft from Vehicle") %>% group_by(TYPE,YEAR,MONTH,DAY,HOUR)   %>% filter(MONTH=="1") %>% filter(YEAR=="2020")    %>% summarise(incidents=n()) %>% mutate(date= make_datetime(YEAR, MONTH,DAY,HOUR)) %>% filter(DAY %in% c("5":"11")) %>%  ggplot( mapping = aes(x=HOUR,   group=DAY,  fill=DAY)) + geom_density(alpha=0.4) +   scale_x_continuous(breaks=c(00:23)) + scale_fill_gradientn(colours = rainbow(7)) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black")) + ggtitle(label = "Trend Over Time of the Day for theft from Vehicle")+theme(plot.title = element_text(hjust=0.5, lineheight = .8, face = "bold"))+xlab("Hour")
+     
+sp007_kk
+
+```
+ 
+ 
+ 
+ **Answer**   For this graph, I filtered the data from January 5th, 2020 to January 11th, 2020. I wasn't able to find how to change it to Monday-Sunday. I tried my best to do whatever I can, and the resources I used are mentioned above.   
+ 
+The crime pattern for Theft from Vehicle over the days of week:  The initial days from 5-8 January i.e. Monday-Thursday shows that more theft took place mostly in the evenings after 4pm. Whereas from 9-11 January i.e. Friday-Sunday it was usually happening early mornings and gets stable by evening. Basically the density of thefts starts increasing from early morning and by afternoon it reaches at the highest point and then by evening and nights the numbers get lower. 
+
+As mentioned, it shows quite a different pattern between weekdays and weekend. The timings for more thefts on weekdays is around afternoon and evening whereas on weekends it's early morning and noon. 
+
+Most of the thefts are taking place from 10am - 9pm(from the graph it is 10-21 HOUR) over the whole week. 
+ 
+ 
+ 

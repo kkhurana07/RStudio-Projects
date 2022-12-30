@@ -1,0 +1,269 @@
+
+---
+title: "Report on hunting licence sold in British Columbia"
+author: "Kunal Khurana" 
+ID: "301355396"
+date: "December 6, 2020"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(magrittr)
+library(dplyr)
+```
+
+
+
+
+
+
+
+
+2) Introduction ( ≤ 200 words). Write no more than 200 words motivating and introducing your analysis. Put yourself in the position of a reader and make it sound interesting and important! State very clearly what primary question/topic your report evaluates.
+
+I analyzed the sales of licence for the past 5 years (i.e., 2015-2019) based on the residency type of hunters. There are different types of licence that are sold, and each licence has a different price, which helped me to analyze the result whether the sale depend on population size, the price of licence, or the type of hunters.
+
+**MOTIVATION**- 
+As we know, in every country there are certain things which are priced different for residents and non-residents. In this topic I wanted to know that whether hunting those same animals also have different prices based on the residency type of the hunter. Because no matter where an individual is from, they are skill killing an animal.
+I gathered information of price charged for licence (Note: price includes fees and Habitat Conservation Trust Foundation (HCTF) surcharge) and the other dataset I looked for was Population in BC over past 5 years, which helped me make my analysis more interesting. 
+
+
+
+
+
+
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+hunting_kk <- read_csv("C:/Users/kunal/OneDrive/Desktop/334/hunting-sales-statistics-05-06-to-19-20.csv")
+names(hunting_kk)[names(hunting_kk) == "Product Type"] <- "Licence_category"
+names(hunting_kk)[names(hunting_kk) == "Licence Type"] <- "Licence_type"
+
+```
+
+
+3) Data description ( ≤ 200 words). Write no more than 200 words describing the data you are using for your project. What type of information does the data capture? Where does the data come from? What are the key variables (no more than 5) you will use in your analysis?
+
+This report analyzes the number of hunting licences sold in British Columbia in different years. The data is currently collected through the BC Hunting Online licencing system and includes sales of different types of licence. The dataset is taken from DataBC website. Sales are summarized by:
+
+Key variables | Information
+------------- | ------------
+Residency     | Hunter residency type (Resident or Non-Resident)
+Product Type  | Category of licence type 
+Licence Type  | Description of licence
+Licence Year  | April 1 - March 31 each year 
+
+
+There are 2 other datasets that I am combining with my original data, I basically mutated the relevant data into my original dataset. The first thing I mutated is the total price of each licence type (price includes fees and Habitat Conservation Trust Foundation (HCTF) surcharge) and the second data is the population of British Columbia in the past 5 years. 
+
+
+
+4) Summary statistics ( ≤ 150 words, 1 table, 1 figure). Create one table including the mean, standard deviation, minimum, maximum, and number of observations for your key variables (no more than 5). Write a brief description of your table and note any interesting patterns. Create one figure that helps you better understand your data and address the topic your report focuses on. Write a brief description about your figure. Note that all tables and figures throughout your report should be very clear with a figure title, clear titles on each axis, and clear labels for any legend.
+
+
+
+```{r echo=FALSE, fig.width=8, message=FALSE, warning=FALSE}
+
+
+hunting2_kk <- hunting_kk %>% filter(!is.na(`Y05/06`)) %>% filter(!is.na(`Y13/14`)) %>% filter(!is.na(`Y14/15`)) %>% filter(!is.na(`Y18/19`)) %>% select(Residency,Licence_category, Licence_type, `Y15/16`, `Y16/17`, `Y17/18`, `Y18/19`, `Y19/20`)  
+
+hunting3_kk <- hunting2_kk %>%   pivot_longer(c(`Y15/16`,`Y16/17`, `Y17/18`, `Y18/19`, `Y19/20`), names_to = "year", values_to = "sales") %>% mutate(Year= case_when(year=="Y15/16" ~ 2015, year=="Y16/17" ~ 2016, year=="Y17/18" ~ 2017, year=="Y18/19" ~ 2018,year=="Y19/20" ~ 2019 )) %>% group_by(Licence_category, Year)  %>% summarise(sales = sum(sales))
+
+p <- ggplot(hunting3_kk, aes(x =Licence_category, y = sales, fill = Year ))
+p + geom_col(position = "dodge2") + scale_y_continuous(breaks = seq(0,300000, 25000 )) + theme(axis.line = element_line(colour = "black")) + labs(x="Licence category", y="Licences sold", title = "Number of BC hunting licences of different categories sold in last 5 years")
+
+```
+
+
+
+The figure above describes the total sale of licences of different categories in past 5 years (i.e., 2015 to 2019). We can see that in all the 5 years the highest number of licences were sold for Species licence category and least were sold for Special Area Licence. In each year the sale for licence remain almost the same for each category, as there is very minor difference in values for each year. 
+
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+sd(hunting2_kk$`Y15/16`)
+sd(hunting2_kk$`Y16/17`)
+sd(hunting2_kk$`Y17/18`)
+sd(hunting2_kk$`Y18/19`)
+sd(hunting2_kk$`Y19/20`)
+
+summary(hunting2_kk)
+```
+
+Key Variable | Mean | standard deviation | minimum |  maximum | number of observations 
+------------ | ---- | ------------------ | ------- | -------- | ----------------------
+Y15/16       | 16202.6 |    39228.92     | 9.0     | 199403.0 | 36 
+Y16/17       | 15438.7 |      35131.45   | 12.0    | 165758.0 | 36 
+Y17/18       | 15083.0 | 34640.75        | 15.0    | 167641.0 | 36   
+Y18/19       | 14863.0 |         33675.32| 24.0    | 161639.0 | 36
+Y19/20       | 14994.0 |    33728.25     | 11.0    | 163208.0 | 36 
+
+
+The table above shows summary statistics of the key variable I used for my report. These are the number of licence sold for hunting in British Columbia and these 5 years are the ones on which I am making my report. 
+
+
+
+5) Linear regression model ( ≤ 200 words, 1 table, 1 figure) Propose a linear regression to help you better understand the patterns in your data and state why you are proposing this regression. What is the dependent variable? What are the independent variables? Report the results from your regression in a table with a seperate row for each coefficient. For columns, report the coefficient estimate, the standard error, and the p-value (all avilable in the lm() object). Create one figure that helps you visualize the results from your regression. Describe both the table and the figure and what you learn about your data/question.
+
+The linear regression model I am proposing for my dataset conveys a straight-forward information that the residents buy more licence of each category. The regression analysis helped me understand how the type of categories, year and total price of licence depicts the residency of hunter. 
+
+The dependent variable according to my dataset is the residency indicator, for which 0 means the hunter is resident and 1 means the hunter is non-resident. The independent variables I used for the regression analysis are Licence category, Yearnumber which is 1 for 2015 till 5 for 2019, and the total price of each type of licence. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(broom)
+library(forestmangr)
+library(socviz)
+
+annualp_kk <- read_csv("C:/Users/kunal/OneDrive/Desktop/334/pop_bc_annual_estimates.csv")
+annualp_kk <- annualp_kk %>% filter(`British Columbia Population 1867 to 2018` %in% c("2010","2011","2012","2013","2014", "2015", "2016", "2017", "2018", "2019")) 
+names(annualp_kk)[names(annualp_kk)== "British Columbia Population 1867 to 2018"] <- "Year"
+names(annualp_kk)[names(annualp_kk)== "X2"] <- "Population"
+
+
+hunting2_kk$Licence_type <- as.factor(hunting2_kk$Licence_type)
+
+hunting2_kk <- hunting2_kk %>% mutate(Total_price= case_when(Licence_type== "Resident Hunting Licence" ~ 32, Licence_type== "Resident Hunting Licence - Senior Citizen" ~ 7, Licence_type=="Bison" ~70, Licence_type=="Black Bear"~ 20, Licence_type=="Bobcat"~8, Licence_type=="Caribou"~ 20, Licence_type=="Cougar"~30, Licence_type=="Elk"~25,Licence_type=="Lynx"~8, Licence_type=="Moose"~25, Licence_type=="Mountain Goat"~40, Licence_type=="Mountain Sheep"~60, Licence_type=="Deer - Mule"~15,Licence_type=="Deer - Haida Gwaii"~10,Licence_type=="Deer - White tailed"~15,Licence_type=="Wolverine"~8,Licence_type=="Fraser Valley Special Area Licence"~10,Licence_type=="Gulf Islands Special Area Licence"~2,Licence_type=="Standard LEH Draw"~6,Licence_type=="Mountain Sheep Draw"~15, Licence_type=="Upland Gamebird"~50,Licence_type=="Bison - Non-Resident"~700,Licence_type=="Black Bear - Non-Resident"~180,Licence_type=="Bobcat - Non-Resident"~40,Licence_type=="Caribou - Non-Resident"~230,Licence_type=="Cougar - Non-Resident"~230,Licence_type=="Elk - Non-Resident"~250,Licence_type=="Lynx - Non-Resident"~40,Licence_type=="Moose - Non-Resident"~250,Licence_type=="Mountain Goat - Non-Resident"~350,Licence_type=="Mountain Sheep - Non-Resident"~620,Licence_type=="Deer - Mule - Non-Resident"~125,Licence_type=="Deer - Haida Gwaii - Non-Resident"~25,Licence_type=="Deer - White tailed - Non-Resident"~125, Licence_type=="Wolverine - Non-Resident"~40, Licence_type=="Wolf - Non-Resident"~50 )) 
+
+hunting2_kk <- hunting2_kk %>% mutate(residency_indicator= case_when(Residency=="Resident"~0, Residency=="Non-Resident"~1))
+
+huntingpop_kk <-  hunting2_kk %>% pivot_longer(c(`Y15/16`,`Y16/17`, `Y17/18`, `Y18/19`, `Y19/20`), names_to = "year", values_to = "sales") %>% mutate(Yearnumber= case_when(year=="Y15/16" ~ 1, year=="Y16/17" ~ 2, year=="Y17/18" ~ 3, year=="Y18/19" ~ 4,year=="Y19/20" ~ 5 ))
+
+
+output_01 <- lm(residency_indicator ~  Licence_category + Yearnumber+ Total_price , data= huntingpop_kk )
+summary(output_01)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+output01_kk <- tidy(output_01, conf.int = TRUE)
+output01_kk %>% round_df()
+
+output01_kk <- subset(output01_kk, term %nin% "(Intercept)")
+output01_kk$nicelabs <- prefix_strip(output01_kk$term,  c("Licence_category", "Total_"))
+```
+
+The above table shows the estimate, standard error, lower and upper confidence and the p value. This table is basically a tidy form of the regression analysis output. We can see that each category of licence has an estimate in relation to the residency type of the hunter. 
+According to the p-value, we can conclude that if the p-value is less than 0.05 that is near to 0, we reject the null hypothesis that there's no difference between the means and conclude that a significant difference does exist. If the p-value is larger than 0.05, we cannot conclude that a significant difference exists. 
+The yearnumber gave me the p value of 1, which means there is no strong evidence to keep this variable in our regression. I did this to differentiate between my results so that the concept of linear regression is more clear. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+c <- ggplot(output01_kk, mapping = aes(x= reorder(nicelabs,estimate), y= estimate, ymin= conf.low, ymax=conf.high)) + geom_pointrange() +geom_hline(yintercept = 0, linetype="dashed", color="red")  +  coord_flip() +
+  theme( panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+ labs(x="", y="residency estimate", title = "Estimate and confidence interval for Residency type")
+c
+```
+
+The estimate is measuring the difference in residency type. Whether we have a 0 or 1 we have for the outcome variable that is residency. The omitted category is the basic licence, 
+These estimates tells us that relative to basic licence and holding other variable constant the LEH application licence type sold is more likely to be sold to the residents but we cannot say this with much confidence becuase the lower bound of our 95% confidence is actually negative. We can say with confidence that the difference is zero and which tells us that all the hunters who bought LEH application and Special Areas Licence were residents.
+The hunter who bought speicies licence is 40 percentage point more likely to be a resident of British Columbia. 
+
+
+
+
+
+
+
+6) Additional visualization/analysis ( ≤ 150 words, 1 or 2 figures) Propose some exercise in addition to your visualization and analysis from above. Visualize patterns for different groups or subsamples of your data? Create a map? Something that shows off a skill you have learned this semester. This is open-ended, but we will look for something that is clear, interesting, and related to your overall topic for the report.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.width=7}
+library(ggplot2)
+library(gganimate)
+library(babynames)
+library(hrbrthemes)
+library(viridis)
+
+hunting6_kk <- hunting2_kk %>%   pivot_longer(c(`Y15/16`,`Y16/17`, `Y17/18`, `Y18/19`, `Y19/20`), names_to = "year", values_to = "sales") %>% mutate(Year= case_when(year=="Y15/16" ~ 2015, year=="Y16/17" ~ 2016, year=="Y17/18" ~ 2017, year=="Y18/19" ~ 2018,year=="Y19/20" ~ 2019 )) %>% group_by(Residency, Year)  %>% summarise(sales = sum(sales))
+
+  p <- ggplot( data=hunting6_kk, aes(x=Year, y=sales, group=Residency, color=Residency))+ facet_wrap(~ Residency, ncol=1, scales = "free_y") +
+    geom_line() +
+    geom_point() +
+    scale_color_viridis(discrete = TRUE) + labs(x="Year" , y="Number of licences sold", title = "licence sale based on residency from 2015-2019") +
+    theme_ipsum() +
+    transition_reveal(Year) + theme(axis.line = element_line(colour = "black")) + 
+    theme(legend.position = "none") 
+  p
+```
+
+The figure above shows the sale of total number of licences in each year from 2015 to 2019 based on the residency type of the hunter. As we can see the residents buy more hunting licence than the non-residents. This is also because of the price charged for the licence for each hunter. The price data mutated in earlier question gave an overview that the price for non-residents licence type is higher than the price of resident licence type. 
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+poph_kk <- hunting_kk %>% filter(!is.na(`Y05/06`)) %>% filter(!is.na(`Y13/14`)) %>% filter(!is.na(`Y14/15`)) %>% filter(!is.na(`Y18/19`)) %>% select(Residency,Licence_category, Licence_type,`Y10/11`, `Y11/12`, `Y12/13`, `Y13/14`, `Y14/15`, `Y15/16`, `Y16/17`, `Y17/18`, `Y18/19`, `Y19/20`)
+
+huntingpop1_kk <- poph_kk %>% pivot_longer(c(`Y10/11`, `Y11/12`, `Y12/13`, `Y13/14`,`Y15/16`,`Y16/17`, `Y17/18`, `Y18/19`, `Y19/20`), names_to = "year", values_to = "sales") %>% mutate(Year= case_when(year=="Y10/11" ~ 2010,year=="Y11/12" ~ 2011,year=="Y12/13" ~ 2012,year=="Y13/14" ~ 2013,year=="Y14/15" ~ 2014, year=="Y15/16" ~ 2015, year=="Y16/17" ~ 2016, year=="Y17/18" ~ 2017, year=="Y18/19" ~ 2018,year=="Y19/20" ~ 2019 ))
+  
+ huntingpop1_kk <-  huntingpop1_kk %>% mutate(Population= case_when(Year== "2010" ~ 4465546,Year== "2011" ~ 4502104,Year== "2012" ~ 4566769,Year== "2013" ~ 4630077,Year== "2014" ~ 4707103, Year== "2015" ~ 4776388, Year== "2016" ~ 4859250, Year=="2017" ~4924233, Year=="2018"~ 5001170, Year=="2019"~5071336)) 
+ 
+hunting7_kk <- huntingpop1_kk 
+hunting7_kk$Licence_type=gsub(" - Non-Resident","",hunting7_kk$Licence_type)
+
+ 
+
+v <- ggplot(data = hunting7_kk, mapping= aes(x=Population, y=sales,size=Year, color = Licence_category)) +
+  geom_point()+
+  scale_x_log10() +  scale_y_continuous(breaks = seq(2500,200000, 25000 ))+
+  scale_size_continuous(breaks = seq(2010,2019,1)) +
+  theme_bw() +  transition_time(Year) +
+  ease_aes('linear') + labs(y="Licence sold", x="BC population")
+v
+
+```
+
+The above figure depicts the different categories of licence sold in each year along with the population size of BC for the last 10 years. I added 5 mores years to have a significant result. So, we can see that as the year increases the population size increases too but the number of licence sold overall remains the same. As the bubbles in 2019 stay almost in their original position as they were in 2010, which tells that number of licences sold didn't change that much. But for the LEH application we can see the bubble fell down which tells that the sale went down when the population and year increased. In the middle years there was sudden increase for licence sold but when reaching 2019 it fell again. It is quite surprising result, as I thought that with the increase in population there will be an increase in licence too, but we can also see that the population hasn't really changed that much too so maybe because of stable increase in population there is a stable increase in licences sold. 
+
+
+
+7) Conclusion ( ≤ 100 words) Write a brief summary of your report. What did we learn from your report?
+
+This report helps the audience understand about the BC hunting licences. Initially I just had sales information, but with the help of different functions I tried to relate each variable and made an efficient result out of it. Some of the key things of this report are the number of licences sold for each category of licence, number of licences sold to the residents and the non-residents of British Columbia, linear regression between residency type and licences sold and the last thing was the relations between population of BC and number of licence sold over the past 10 years. 
+
+I faced a lot of challenges while completing this report as the main task was to find the perfect dataset which will help you analyze easily but in reality there wasn't much datasets which were easy to proceed with. It was a challenging assignment but it helped me refresh all my learnings from this course and I wish to learn more. 
+
+8) References You must list all the resources used for your report in the following order: (1) packages used; (2) data name and location where we could download the same data; (3) any webpages (with links) used or articles referenced
+
+1) I have used the following R packages to complete this assignment. To replicate, install these packages first.
+1. `tidyverse`
+2. `lubridate`
+3. `magrittr`
+4. `dplyr`
+5. `broom`
+6. `forestmangr`
+7. `socviz`
+8. `ggplot2`
+9. `gganimate`
+10. `babynames`
+11. `hrbrthemes`
+12. `viridis`
+
+
+2) **Data name**- Hunting Sales Statistics 2005 to Current
+
+*Weblink*- https://catalogue.data.gov.bc.ca/dataset/hunting-sales-statistics-2005-to-current
+
+**Data name**- Price for Licences [I mutated the price from the websites]
+
+*Weblink*- https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/hunting/bc-resident-hunting/bc-resident-licence
+https://www2.gov.bc.ca/gov/content/sports-culture/recreation/fishing-hunting/hunting/non-resident-hunting/non-resident-licences
+
+
+**Data name**- BC population 
+
+*Weblink*- https://www2.gov.bc.ca/gov/content/data/statistics/people-population-community/population/population-estimates
+
+
+
+3) Other weblinks used:
+
+https://www.datanovia.com/en/lessons/rename-data-frame-columns-in-r/
+https://www.r-graph-gallery.com/271-ggplot2-animated-gif-chart-with-gganimate.html
+https://stackoverflow.com/questions/57283439/is-there-a-way-to-change-range-of-size-values-in-ggplot2-geom-point-in-r
+https://www.xspdf.com/resolution/51602538.html
+https://www.statology.org/calculate-mean-multiple-columns-in-r/
+https://stackoverflow.com/questions/37147315/remove-a-suffix-to-a-value-of-a-data-frame https://www.r-graph-gallery.com/287-smooth-animation-with-tweenr.html
+https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html
